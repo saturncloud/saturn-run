@@ -1,0 +1,7 @@
+[flake8]
+count = True
+max_line_length = 100
+exclude =
+    .vscode,
+    .vscode-server
+ignore = E121,E123,E126,E203,E226,E24,E704,W503,W504
