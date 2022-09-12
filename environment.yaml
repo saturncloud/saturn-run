@@ -1,0 +1,26 @@
+name: saturn_run
+channels:
+- defaults
+- conda-forge
+dependencies:
+- bokeh
+- dask=2022.9.0
+- distributed=2022.9.0
+- pip
+- python-dotenv
+- boto3
+- pip:
+  - flake8
+  - black
+  - isort
+  - pytest
+  - pylint
+  - mypy
+  - bandit
+  - pytest-cov
+  - pytest-xdist
+  - pylint
+  - mypy
+  - types-requests
+  - bandit
+  - psutil
