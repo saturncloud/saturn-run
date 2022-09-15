@@ -12,7 +12,7 @@ Where `run.yaml` is the following:
 
 ```
 name: lr-sweep
-runs:
+tasks:
   - name: lr-0.5
     command: python train.py --lr 0.5
   - name: lr-0.6
@@ -21,7 +21,7 @@ runs:
     command: python train.py --lr 0.7
   - name: lr-0.8
     command: python train.py --lr 0.8
-compute:
+executor:
   - type: DaskBackend
     cluster_class : LocalCluster
     n_workers: 4
@@ -83,7 +83,7 @@ The output structure of an saturn run looks like this:
 * **status**: "success" or "failure", written after the run terminates.
 
 
-## Examples of compute backends
+## Examples of executor backends
 - DaskBackend
 - RayBackend
 - RFuturesBackend

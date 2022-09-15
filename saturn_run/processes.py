@@ -44,6 +44,7 @@ def execute(
 ) -> None:
 
     context = results.make_task_context(name)
+    print(context)
     stdout = open(context.stdout_path, "w+")
     stderr = open(context.stderr_path, "w+")
     proc = subprocess.Popen(cmd, stdout=stdout, stderr=stderr, shell=shell)

@@ -1,7 +1,9 @@
-from os.path import join
+from os import walk
+from os.path import exists, join, relpath
 from urllib.parse import urlparse
 
 import boto3
+from boto3_type_annotations.s3 import Client
 from saturn_run.results.base import Results, ResultsTaskContext
 
 
@@ -16,7 +18,13 @@ class S3Results(Results):
         self.s3_url = s3_url
         parsed = urlparse(s3_url)
         self.bucket = parsed.netloc
-        self.path = parsed.path
+        self.path = parsed.path.lstrip("/")
+
+    def make_task_context(self, name: str):
+        return S3TaskContext(name, self)
+
+
+Results.backends["S3Results"] = S3Results
 
 
 class S3TaskContext(ResultsTaskContext):
@@ -28,27 +36,35 @@ class S3TaskContext(ResultsTaskContext):
         super().__init__(name, results)
         self.results: S3Results = results  # for mypy?
 
-    def set_status(self, status: str):
+    def s3_client(self) -> Client:
         sess = boto3.Session()
         s3 = sess.client("s3")
+        return s3
+
+    def set_status(self, status: str):
+        s3 = self.s3_client()
         path = join(self.results.path, self.name, "status")
         s3.put_object(Bucket=self.results.bucket, Key=path, Body=status.encode("utf-8"))
 
     def sync(self):
-        sess = boto3.Session()
-        s3 = sess.client("s3")
+        s3 = self.s3_client()
 
-        path = join(self.results.path, self.name, "stdout")
-        with open(self.stdout_path, "rb") as f:
-            s3.upload_fileobj(f, self.results.bucket, path)
+        s3_path = join(self.results.path, self.name, "stdout")
+        if exists(self.stdout_path):
+            s3.upload_file(self.stdout_path, self.results.bucket, s3_path)
 
-        path = join(self.results.path, self.name, "stderr")
-        with open(self.stderr_path, "rb") as f:
-            s3.upload_fileobj(f, self.results.bucket, path)
+        s3_path = join(self.results.path, self.name, "stderr")
+        if exists(self.stderr_path):
+            s3.upload_file(self.stderr_path, self.results.bucket, s3_path)
 
-        path = join(self.results.path, self.name, "stdout")
-        with open(self.stdout_path, "rb") as f:
-            s3.upload_fileobj(f, self.results.bucket, path)
+        if exists(self.results_dir):
+            for root, _, files in walk(self.results_dir):
+                for f in files:
+                    abs_path = join(root, f)
+                    s3_path = join(
+                        self.results.path, self.name, "results", relpath(abs_path, self.results_dir)
+                    )
+                    s3.upload_file(abs_path, self.results.bucket, s3_path)
 
     def cleanup(self):
         self.tempdir.cleanup()

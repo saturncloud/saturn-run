@@ -93,7 +93,7 @@ check-backend-test-markers:
 
 .PHONY: test-backend
 test-backend:
-	pytest -n auto --cov-report term-missing --cov=saturn_run/ --cov-fail-under=60 -s
+	pytest -n auto --cov-report term-missing --cov=saturn_run/ -s
 
 .PHONY: test-debug
 test-debug:
@@ -101,5 +101,4 @@ test-debug:
 
 .PHONY: conda-update
 conda-update:
-	($(CONDA_ACTIVATE) base && (conda remove --all -n saturn_run -y || true) && mamba create -n saturn_run -y && $(CONDA_ACTIVATE) saturn_run)
 	mamba env update -n saturn_run --file environment.yaml

@@ -3,12 +3,14 @@ channels:
 - defaults
 - conda-forge
 dependencies:
+- python=3.9
 - bokeh
 - dask=2022.9.0
 - distributed=2022.9.0
 - pip
 - python-dotenv
 - boto3
+- ruamel.yaml
 - pip:
   - flake8
   - black

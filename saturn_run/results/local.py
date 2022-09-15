@@ -1,38 +1,29 @@
 import os
-import tempfile
 from os.path import join
-from typing import Callable, Dict
 
-# status fields
-
-SUBMITTED = "submitted"
-STARTED = "started"
-FINISHED = "finished"
-SAVED = "saved"
-FAILED = "failed"
+from saturn_run.results.base import Results, ResultsTaskContext
 
 
-class Results:
-
-    backends: Dict[str, Callable[..., "Results"]] = {}
+class LocalResults(Results):
+    def __init__(self, path):
+        self.path = path
+        os.makedirs(self.path, exist_ok=True)
 
     def make_task_context(self, name: str):
-        raise NotImplementedError
-
-    @classmethod
-    def create(cls, class_spec: str, **kwargs):
-        return cls.backends[class_spec](**kwargs)
+        return LocalTaskContext(name, self)
 
 
-class ResultsTaskContext:
-    """
-    Results obs3ject passed to a specific task
-    """
-
-    def __init__(self, name: str, results: Results):
+class LocalTaskContext(ResultsTaskContext):
+    def __init__(self, name: str, results: LocalResults):  # pylint: disable=super-init-not-called
         self.name = name
         self.results = results
-        self.tempdir = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
+        self.path = join(self.results.path, self.name)
+        os.makedirs(self.path, exist_ok=True)
+
+    def set_status(self, status):
+        path = join(self.path, "status")
+        with open(path, "w+") as f:
+            f.write(str(status))
 
     @property
     def stdout_path(self):
@@ -40,7 +31,7 @@ class ResultsTaskContext:
         Tasks should write stdout here. The results object may do something with it
         afterwards.
         """
-        return join(self.tempdir.name, "stdout")
+        return join(self.path, "stdout")
 
     @property
     def stderr_path(self):
@@ -48,7 +39,7 @@ class ResultsTaskContext:
         Tasks should write stderr here. The results object may do something with it
         afterwards.
         """
-        return join(self.tempdir.name, "stderr")
+        return join(self.path, "stderr")
 
     @property
     def results_dir(self):
@@ -56,7 +47,7 @@ class ResultsTaskContext:
         Tasks should write results. The results object may do something with it
         afterwards.
         """
-        results_dir = join(self.tempdir.name, "results")
+        results_dir = join(self.path, "results")
         os.makedirs(results_dir, exist_ok=True)
         return results_dir
 
@@ -65,15 +56,16 @@ class ResultsTaskContext:
         This is called periodically during the execution of a task to synchronize
         any local storage with a remote source.
         """
-        raise NotImplementedError
+        pass
 
     def finish(self):
         """
         This is called when the task is complete. This is called before cleanup
         """
+        pass
 
     def cleanup(self):
-        self.tempdir.cleanup()
+        pass
 
-    def set_status(self, status: str):
-        raise NotImplementedError()
+
+Results.backends["LocalResults"] = LocalResults
