@@ -19,6 +19,7 @@ def run(run_yaml, task_yaml, name, prefix):
     logging.basicConfig(level=logging.INFO)
     with open(run_yaml, "r") as f:
         parsed = YAML().load(f)
+
     run_config = RunConfig.from_yaml(name=name, prefix=prefix, **parsed)
 
     with open(task_yaml, "r") as f:

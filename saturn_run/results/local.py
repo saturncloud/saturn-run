@@ -5,8 +5,10 @@ from saturn_run.results.base import Results, ResultsTaskContext
 
 
 class LocalResults(Results):
-    def __init__(self, path):
+    def __init__(self, path, name: str):
         self.path = path
+        if "{name}" in self.path:
+            self.path = self.path.replace("{name}", name)
         os.makedirs(self.path, exist_ok=True)
 
     def make_task_context(self, name: str):

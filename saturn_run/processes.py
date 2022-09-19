@@ -62,6 +62,8 @@ def execute(
                 logger().info("sync")
                 context.sync()
             else:
+                logger().info("sync")
+                context.sync()
                 context.set_status(str(exit_code))
                 break
     running_pids.remove(proc.pid)

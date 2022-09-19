@@ -15,9 +15,12 @@ class S3Results(Results):
     Individual tasks will have S3Context objects based off of this.
     """
 
-    def __init__(self, s3_url):
+    def __init__(self, s3_url, name):
         self.s3_url = s3_url
-        parsed = urlparse(s3_url)
+        if "{name}" in self.s3_url:
+            self.s3_url = self.s3_url.replace("{name}", name)
+            breakpoint()
+        parsed = urlparse(self.s3_url)
         self.bucket = parsed.netloc
         self.path = parsed.path.lstrip("/")
 

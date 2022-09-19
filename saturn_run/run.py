@@ -46,7 +46,7 @@ class RunConfig:
         if name is None:
             raise ConfigError("name or prefix must be set")
 
-        results_obj = Results.create(**results)
+        results_obj = Results.create(name=name, **results)
         executor_obj = Executor.create(**executor)
         logging.info(f"creating run config with name: {name}")
         return cls(name=name, results=results_obj, executor=executor_obj)

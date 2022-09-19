@@ -20,8 +20,8 @@ class Results:
         raise NotImplementedError
 
     @classmethod
-    def create(cls, class_spec: str, **kwargs):
-        return cls.backends[class_spec](**kwargs)
+    def create(cls, class_spec: str, name: str, **kwargs):
+        return cls.backends[class_spec](name=name, **kwargs)
 
 
 class ResultsTaskContext:

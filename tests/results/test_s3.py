@@ -6,14 +6,14 @@ from saturn_run.results import S3Results, S3TaskContext
 
 
 def test_s3_results_constructor():
-    results = S3Results("s3://bucket/path/other/path")
+    results = S3Results("s3://bucket/path/other/path", name="foo")
     assert results.s3_url == "s3://bucket/path/other/path"
     assert results.bucket == "bucket"
     assert results.path == "path/other/path"
 
 
 def test_set_status(monkeypatch):
-    results = S3Results("s3://bucket/path/other/path")
+    results = S3Results("s3://bucket/path/other/path", name="foo")
     context = results.make_task_context("my-task")
     try:
         s3 = Mock()
@@ -30,7 +30,7 @@ def test_set_status(monkeypatch):
 
 
 def test_sync_stdout_stderr(monkeypatch):
-    results = S3Results("s3://bucket/path/other")
+    results = S3Results("s3://bucket/path/other", name="foo")
     context = results.make_task_context("my-task")
     try:
         s3 = Mock()
@@ -58,7 +58,7 @@ def test_sync_stdout_stderr(monkeypatch):
 
 
 def test_sync_results(monkeypatch):
-    results = S3Results("s3://bucket/path/other")
+    results = S3Results("s3://bucket/path/other", name="foo")
     context = results.make_task_context("my-task")
     try:
         s3 = Mock()

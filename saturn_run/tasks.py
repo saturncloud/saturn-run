@@ -6,14 +6,14 @@ from typing import List, Optional, Union
 class TaskSpec:
     name: str
     command: Union[str, List[str]]
-    shell: bool = False
+    shell: bool = True
 
     @classmethod
     def from_yaml(
         cls,
         count: int,
         command: Union[str, List[str]],
-        shell: bool = False,
+        shell: bool = True,
         name: Optional[str] = None,
     ) -> "TaskSpec":
         if name is None:
