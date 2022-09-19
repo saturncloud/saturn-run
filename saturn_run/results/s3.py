@@ -4,6 +4,7 @@ from urllib.parse import urlparse
 
 import boto3
 from boto3_type_annotations.s3 import Client
+from saturn_run.logging import logger
 from saturn_run.results.base import Results, ResultsTaskContext
 
 
@@ -48,7 +49,7 @@ class S3TaskContext(ResultsTaskContext):
 
     def sync(self):
         s3 = self.s3_client()
-
+        logger().info(f"sync {self.stdout_path} {self.stderr_path}")
         s3_path = join(self.results.path, self.name, "stdout")
         if exists(self.stdout_path):
             s3.upload_file(self.stdout_path, self.results.bucket, s3_path)
@@ -57,6 +58,9 @@ class S3TaskContext(ResultsTaskContext):
         if exists(self.stderr_path):
             s3.upload_file(self.stderr_path, self.results.bucket, s3_path)
 
+    def finish(self):
+        s3 = self.s3_client()
+        logger().info(f"save results {self.results_dir}")
         if exists(self.results_dir):
             for root, _, files in walk(self.results_dir):
                 for f in files:
@@ -64,7 +68,10 @@ class S3TaskContext(ResultsTaskContext):
                     s3_path = join(
                         self.results.path, self.name, "results", relpath(abs_path, self.results_dir)
                     )
+                    logger().warning(f"saving {abs_path} to {s3_path}")
                     s3.upload_file(abs_path, self.results.bucket, s3_path)
+        else:
+            logger().warning(f"results dir {self.results_dir} does not exist")
 
     def cleanup(self):
         self.tempdir.cleanup()

@@ -22,12 +22,11 @@ tasks:
   - name: lr-0.8
     command: python train.py --lr 0.8
 executor:
-  - type: DaskBackend
-    cluster_class : LocalCluster
-    n_workers: 4
+  class_spec: DaskExecutor
+  scheduler_address: "tcp://127.0.0.1:8886"
 results:
-  - type: LocalDir
-    directory: /tmp/results
+  class_spec: LocalDir
+  directory: /tmp/results
 ```
 
 Results are collected (if necessary)

@@ -73,6 +73,7 @@ def test_sync_results(monkeypatch):
         with open(join(context.results_dir, "foo/bar/test_c"), "w+") as f:
             f.write("hi")
         context.sync()
+        context.finish()
         s3.upload_file.assert_has_calls(
             [
                 call(
