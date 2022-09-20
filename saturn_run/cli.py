@@ -1,5 +1,7 @@
 import logging
 
+logging.basicConfig(level=logging.INFO)
+
 import click
 from ruamel.yaml import YAML
 from saturn_run.run import RunConfig, TaskConfig
@@ -34,7 +36,6 @@ def run(run_yaml, task_yaml, name, prefix):
 @click.argument("run-yaml")
 @click.option("--name")
 def collect(run_yaml, name):
-    logging.basicConfig(level=logging.INFO)
     with open(run_yaml, "r") as f:
         parsed = YAML().load(f)
     run_config = RunConfig.from_yaml(name=name, **parsed)
