@@ -1,5 +1,6 @@
 from typing import Callable, Dict, List
 
+from saturn_run.file_sync import FileSync
 from saturn_run.results.base import Results
 from saturn_run.tasks import TaskSpec
 
@@ -15,4 +16,7 @@ class Executor:
         return cls.backends[class_spec](**kwargs)
 
     def collect(self, name: str):
+        raise NotImplementedError
+
+    def sync_files(self, file_syncs: List[FileSync]):
         raise NotImplementedError

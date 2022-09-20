@@ -13,6 +13,7 @@ except ImportError:
 
 from saturn_run.errors import ConfigError
 from saturn_run.executor.base import Executor
+from saturn_run.file_sync import FileSync
 from saturn_run.processes import execute
 from saturn_run.results.base import Results
 from saturn_run.tasks import TaskSpec
@@ -92,6 +93,27 @@ class DaskExecutor(Executor):
                         traceback.print_exc()
                         client.unpublish_dataset(datasets[index])
             queue = result.not_done
+
+    def setup_sync_files(self):
+        # todo pull this into saturn_run instead of dask-saturn
+        from dask_saturn.plugins import RegisterFiles
+
+        client = self.get_dask_client()
+        client.register_worker_plugin(RegisterFiles())
+
+    def call_sync_files(self, src: str, dest: str):
+        # todo pull this into saturn_run instead of dask-saturn
+        from dask_saturn.plugins import sync_files
+
+        if src != dest:
+            raise NotImplementedError(f"currently, src and dest must be the same {src}:{dest}")
+        client = self.get_dask_client()
+        sync_files(client, src)
+
+    def sync_files(self, file_syncs: List[FileSync]):
+        self.setup_sync_files()
+        for fs in file_syncs:
+            self.call_sync_files(fs.src, fs.dest)
 
 
 DaskExecutor.cluster_classes["LocalCluster"] = LocalCluster
