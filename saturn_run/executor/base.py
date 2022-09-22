@@ -20,3 +20,6 @@ class Executor:
 
     def sync_files(self, file_syncs: List[FileSync]):
         raise NotImplementedError
+
+    def cleanup(self, prefix: str):
+        raise NotImplementedError

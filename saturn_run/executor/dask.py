@@ -14,6 +14,7 @@ except ImportError:
 from saturn_run.errors import ConfigError
 from saturn_run.executor.base import Executor
 from saturn_run.file_sync import FileSync
+from saturn_run.logging import logger
 from saturn_run.processes import execute
 from saturn_run.results.base import Results
 from saturn_run.tasks import TaskSpec
@@ -33,6 +34,7 @@ class DaskExecutor(Executor):
         self.scheduler_address = scheduler_address
         self.cluster_class = cluster_class
         self.cluster_kwargs = cluster_kwargs
+        self.cluster: Optional[SpecCluster] = None
 
     def get_dask_client(self) -> Client:
         if self.scheduler_address:
@@ -42,8 +44,15 @@ class DaskExecutor(Executor):
         cluster_kwargs = self.cluster_kwargs
         if cluster_kwargs is None:
             cluster_kwargs = {}
-        cluster = self.cluster_classes[self.cluster_class](**cluster_kwargs)
-        return Client(cluster)
+        self.cluster = self.cluster_classes[self.cluster_class](**cluster_kwargs)
+        return Client(self.cluster)
+
+    def cleanup(self, prefix: str):
+        client = self.get_dask_client()
+        keys = [x for x in client.list_datasets() if x.startswith(f"srun/{prefix}")]
+        for k in keys:
+            logger().info(f"cleanup dataset {k}")
+            client.unpublish_dataset(k)
 
     def execute(self, tasks: List[TaskSpec], results: Results, name: str):
         client = self.get_dask_client()
@@ -60,14 +69,14 @@ class DaskExecutor(Executor):
                 retries=0,
                 key=key,
             )
-            dataset_name = f"{name}/{t.name}"
+            dataset_name = f"srun/{name}/{t.name}"
             datasets.append(dataset_name)
             client.datasets[dataset_name] = fut
-        client.datasets[name] = datasets
+        client.datasets[f"srun/{name}"] = datasets
 
     def collect(self, name: str):
         client = self.get_dask_client()
-        datasets = client.get_dataset(name)
+        datasets = client.get_dataset(f"srun/{name}")
 
         futures_to_index = {}
         queue = []
@@ -93,6 +102,8 @@ class DaskExecutor(Executor):
                         traceback.print_exc()
                         client.unpublish_dataset(datasets[index])
             queue = result.not_done
+        if self.cluster:
+            self.cluster.close()
 
     def setup_sync_files(self):
         # todo pull this into saturn_run instead of dask-saturn

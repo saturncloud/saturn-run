@@ -2,9 +2,9 @@ import logging
 
 logging.basicConfig(level=logging.INFO)
 
-import click
-from ruamel.yaml import YAML
-from saturn_run.run import RunConfig, TaskConfig
+import click  # noqa
+from ruamel.yaml import YAML  # noqa
+from saturn_run.run import RunConfig, TaskConfig  # noqa
 
 
 @click.group()
@@ -23,7 +23,10 @@ def run(run_yaml, task_yaml, name, prefix):
         parsed = YAML().load(f)
 
     run_config = RunConfig.from_yaml(name=name, prefix=prefix, **parsed)
-
+    if prefix:
+        run_config.executor.cleanup(prefix)
+    else:
+        run_config.executor.cleanup(name)
     with open(task_yaml, "r") as f:
         parsed = YAML().load(f)
     tasks = TaskConfig.from_yaml(**parsed)
