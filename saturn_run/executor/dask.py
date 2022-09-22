@@ -102,8 +102,9 @@ class DaskExecutor(Executor):
                         traceback.print_exc()
                         client.unpublish_dataset(datasets[index])
             queue = result.not_done
-        if self.cluster:
-            self.cluster.close()
+
+        # if self.cluster and self.cluster.shutdown_on_close:
+        #     self.cluster.close()
 
     def setup_sync_files(self):
         # todo pull this into saturn_run instead of dask-saturn
