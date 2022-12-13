@@ -26,3 +26,4 @@ dependencies:
   - types-requests
   - bandit
   - psutil
+  - boto3_type_annotations
